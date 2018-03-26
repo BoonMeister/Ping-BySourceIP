@@ -1,5 +1,7 @@
 # Ping-BySourceIP
 
+PowerShell function to ping using a specified source IP address
+
 SYNOPSIS
 --------
 Pings a destination using a source IP address
