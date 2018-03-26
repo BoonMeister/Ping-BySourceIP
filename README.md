@@ -15,36 +15,36 @@ expressions to return either a boolean value or a results object.
 
 SYNTAX
 ------
-Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>]
+Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)]
   
-Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [-Detailed]
+Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)] [-Detailed]
   
-Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [-Quiet]
+Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)] [-Quiet]
 
 PARAMETERS
 ----------
--Source <String>
+-Source (String)
 
 An IPv4 address of a local network adapter. This parameter is required.
 
--Destination <String>
+-Destination (String)
 
 An IPv4 address or hostname to send packets to. Default is "internetbeacon.msedge.net".
 
--Count <Int32>
+-Count (Int32)
 
 Number of packets to send, in the range 1 - 4294967295. Default is 2.
 
--Size <Int32>
+-Size (Int32)
 
 Byte size of packets to send, in the range 0 - 65500. Default is 32.
 
--Quiet <SwitchParameter>
+-Quiet (SwitchParameter)
   
 Return a boolean value - True if any pings succeed, else False.
 This parameter is mutually exclusive with the -Detailed parameter.
 
--Detailed <SwitchParameter>
+-Detailed (SwitchParameter)
 
 Return an object of the result, counts, latency and text.
 This parameter is mutually exclusive with the -Quiet parameter.
