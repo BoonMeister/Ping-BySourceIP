@@ -50,11 +50,13 @@ This parameter is mutually exclusive with the -Quiet parameter.
 INPUTS
 ------
 System.String
+
 You can pipe a string that represents a source IP address to this function.
 
 OUTPUTS
 -------
 System.String, System.Boolean, System.Management.Automation.PSCustomObject
+
 Without any switch parameters this function generates 1 or more strings from ping.exe.
 You can specify Quiet to generate a boolean or Detailed to generate a PSCustomObject.
 
@@ -68,12 +70,17 @@ EXAMPLES
 Ping-BySourceIP -Source 192.168.0.13
 
 Pinging ds-c-0003.c-msedge.net [13.107.4.52] from 192.168.0.13 with 32 bytes of data:
+
 Reply from 13.107.4.52: bytes=32 time=13ms TTL=120
+
 Reply from 13.107.4.52: bytes=32 time=14ms TTL=120
 
 Ping statistics for 13.107.4.52:
+
   Packets: Sent = 2, Received = 2, Lost = 0 (0% loss),
+  
 Approximate round trip times in milli-seconds:
+
   Minimum = 13ms, Maximum = 14ms, Average = 13ms
 
 Ping using a specific source IP address and print to console.
