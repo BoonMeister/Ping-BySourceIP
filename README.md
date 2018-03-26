@@ -1,5 +1,5 @@
 # Ping-BySourceIP
---------
+
 SYNOPSIS
 --------
 Pings a destination using a source IP address
@@ -11,7 +11,6 @@ Specify a source IP address and optionally the destination host, byte size or co
 The -Quiet and -Detailed switch parameters can be used to search the text with regular
 expressions to return either a boolean value or a results object.
 
-------
 SYNTAX
 ------
 Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [<CommonParameters>]
