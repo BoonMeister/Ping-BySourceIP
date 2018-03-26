@@ -14,28 +14,36 @@ expressions to return either a boolean value or a results object.
 SYNTAX
 ------
 Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [<CommonParameters>]
+  
 Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [-Detailed] [<CommonParameters>]
+  
 Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [-Quiet] [<CommonParameters>]
 
 PARAMETERS
 ----------
 -Source <String>
+
 An IPv4 address of a local network adapter. This parameter is required.
 
 -Destination <String>
+
 An IPv4 address or hostname to send packets to. Default is "internetbeacon.msedge.net".
 
 -Count <Int32>
+
 Number of packets to send, in the range 1 - 4294967295. Default is 2.
 
 -Size <Int32>
+
 Byte size of packets to send, in the range 0 - 65500. Default is 32.
 
 -Quiet <SwitchParameter>
+  
 Return a boolean value - True if any pings succeed, else False.
 This parameter is mutually exclusive with the -Detailed parameter.
 
 -Detailed <SwitchParameter>
+
 Return an object of the result, counts, latency and text.
 This parameter is mutually exclusive with the -Quiet parameter.
 
@@ -57,7 +65,6 @@ Author: Francis Hagyard
 
 EXAMPLES
 --------
-.EXAMPLE
 Ping-BySourceIP -Source 192.168.0.13
 
 Pinging ds-c-0003.c-msedge.net [13.107.4.52] from 192.168.0.13 with 32 bytes of data:
@@ -70,14 +77,16 @@ Approximate round trip times in milli-seconds:
   Minimum = 13ms, Maximum = 14ms, Average = 13ms
 
 Ping using a specific source IP address and print to console.
-.EXAMPLE
+
+-------------------------------------------------------------
 "192.168.0.13" | Ping-BySourceIP -Quiet
 
 True
 
 In this example, the source IP address is piped to the function and the -Quiet parameter
 is used to return a boolean value.
-.EXAMPLE
+
+-------------------------------------------------------------
 Ping-BySourceIP -Source 192.168.0.13 -Destination www.google.com -Count 4 -Size 64 -Detailed
 
 Result      : True
@@ -94,7 +103,8 @@ Text        : {, Pinging www.google.com [216.58.206.68] from 192.168.0.13 with 6
 
 In this example, a specific destination is included along with a non-default count and byte size.
 The -Detailed parameter is used to return an object containing the result, counts, latency and text.
-.EXAMPLE 
+
+-------------------------------------------------------------
 Example of script use:
 
 $IPAddress = "192.168.0.13"
