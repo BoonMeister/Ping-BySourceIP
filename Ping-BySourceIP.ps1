@@ -100,7 +100,7 @@ Function Ping-BySourceIP {
         [Parameter(ParameterSetName="RegularPing",Mandatory=$True,ValueFromPipeline=$True)]
         [Parameter(ParameterSetName="QuietPing",Mandatory=$True,ValueFromPipeline=$True)]
         [Parameter(ParameterSetName="DetailedPing",Mandatory=$True,ValueFromPipeline=$True)]
-        [ValidateNotNullOrEmpty()]
+        [ValidatePattern("^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$")]
         [String]$Source,
         [Parameter(ParameterSetName="RegularPing",Mandatory=$False)]
         [Parameter(ParameterSetName="QuietPing",Mandatory=$False)]
