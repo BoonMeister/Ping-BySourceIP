@@ -1,4 +1,4 @@
-﻿Function Ping-BySourceIP {
+Function Ping-BySourceIP {
 <#
 .SYNOPSIS
     Pings a destination using a source IP address
@@ -10,11 +10,11 @@
 .PARAMETER Source
     An IPv4 address of a local network adapter. This parameter is required.
 .PARAMETER Destination
-    An IPv4 address or hostname to send packets to. Default is "internetbeacon.msedge.net".
+    An IPv4 address or hostname to send packets to. The default value is "internetbeacon.msedge.net".
 .PARAMETER Count
-    Number of packets to send, in the range 1 - 4294967295. Default is 2.
+    Number of packets to send, in the range 1 - 4294967295. The default value is 2.
 .PARAMETER Size
-    Byte size of packets to send, in the range 0 - 65500. Default is 32.
+    Byte size of packets to send, in the range 0 - 65500. The default value is 32.
 .PARAMETER Quiet
     Return a boolean value - True if any pings succeed, else False.
     This parameter is mutually exclusive with the -Detailed parameter.
@@ -90,10 +90,10 @@
     In the third step, the scriptblock is only executed if $Connected equals False (i.e. no pings successfully responded). In the 
     scriptblock the Get-WmiObject cmdlet is piped to Where-Object to determine which local adapter has the IP address and a WMI 
     object representing the adapter is stored in the $Adapter variable. The .ReleaseDHCPLease() method is called to release the
-    DHCP lease on the adapter and the results assigned to the $Null automatic variable to prevent output being generated. The script
+    DHCP lease on the adapter and the results assigned to the $Null automatic variable to prevent output being returned. The script
     then pauses for 5 seconds before calling the .RenewDHCPLease() method in an attempt to renew the DHCP lease on the adapter.
 .LINK
-    Online: https://github.com/BoonMeister/Ping-BySourceIP
+    Project page: https://github.com/BoonMeister/Ping-BySourceIP
 #>
     [CmdletBinding(DefaultParameterSetName="RegularPing")]
     Param(
