@@ -75,26 +75,26 @@ EXAMPLES
 
 - Return normal output:
 
-Ping-BySourceIP -Source 192.168.0.13
+      Ping-BySourceIP -Source 192.168.0.13
 
 - Pipe source and return boolean:
 
-"192.168.0.13" | Ping-BySourceIP -Quiet
+      "192.168.0.13" | Ping-BySourceIP -Quiet
 
 - Specify destination, count, size, no fragmentation, perform reverse lookup and return an object:
 
-Ping-BySourceIP -Source 192.168.0.13 -Destination 216.58.206.68 -Count 4 -Size 128 -NoFrag -Detailed
+      Ping-BySourceIP -Source 192.168.0.13 -Destination 216.58.206.68 -Count 4 -Size 128 -NoFrag -Detailed
 
 - Renew DHCP lease of a local network adapter if not connected:
 
-$IPAddress = "192.168.0.13"
-$Connected = Ping-BySourceIP -Source $IPAddress -Quiet
-If (!$Connected) {
-    $Adapter = Get-WmiObject -Class Win32_NetworkAdapterConfiguration | Where {$_.IPAddress -contains $IPAddress}
-    $Null = $Adapter.ReleaseDHCPLease()
-    Start-Sleep -Seconds 5
-    $Null = $Adapter.RenewDHCPLease()
-}
+      $IPAddress = "192.168.0.13"
+      $Connected = Ping-BySourceIP -Source $IPAddress -Quiet
+      If (!$Connected) {
+          $Adapter = Get-WmiObject -Class Win32_NetworkAdapterConfiguration | Where {$_.IPAddress -contains $IPAddress}
+          $Null = $Adapter.ReleaseDHCPLease()
+          Start-Sleep -Seconds 5
+          $Null = $Adapter.RenewDHCPLease()
+      }
 
 NOTES
 -----
