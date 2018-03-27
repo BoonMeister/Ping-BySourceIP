@@ -13,11 +13,11 @@ expressions to return either a boolean value or a results object.
 
 SYNTAX
 ------
-Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)]
+Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)] [-NoFrag] [-ResolveIP]
   
-Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)] [-Detailed]
+Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)] [-NoFrag] [-ResolveIP] [-Detailed]
   
-Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)] [-Quiet]
+Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)] [-NoFrag] [-ResolveIP] [-Quiet]
 
 PARAMETERS
 ----------
@@ -36,6 +36,16 @@ Number of packets to send, in the range 1 - 4294967295. Default is 2.
 -Size (Int32)
 
 Byte size of packets to send, in the range 0 - 65500. Default is 32.
+
+-NoFrag (SwitchParameter)
+
+Specifies that packets should not be fragmented whilst en route. When using -Quiet 
+or -Detailed a packet that requires fragmentation will be evaluated as a failed response.
+    
+-ResolveIP (SwitchParameter)
+
+When specified with an IP address for the destination parameter attempts to 
+perform a reverse DNS lookup in order to retrieve the destination hostname.
 
 -Quiet (SwitchParameter)
   
