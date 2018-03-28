@@ -50,12 +50,10 @@ perform a reverse DNS lookup in order to retrieve the destination hostname.
 -Quiet (SwitchParameter)
   
 Return a boolean value - True if any pings succeed, else False.
-This parameter is mutually exclusive with the -Detailed parameter.
 
 -Detailed (SwitchParameter)
 
 Return an object of the result, counts, latency and text.
-This parameter is mutually exclusive with the -Quiet parameter.
 
 INPUTS
 ------
