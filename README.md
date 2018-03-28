@@ -117,6 +117,21 @@ EXAMPLES
           Start-Sleep -Seconds 5
           $Null = $Adapter.RenewDHCPLease()
       }
+      
+- Ping multiple destinations and export csv of the details:
+
+      $LocalIP = "192.168.0.13"
+      $DestList = @(
+          "192.168.0.1"
+          "8.8.8.8"
+          "internetbeacon.msedge.net"
+      )
+      $Results = @()
+      Foreach ($Dest in $DestList) {
+          $Details = Ping-BySourceIP -Source $LocalIP -Destination $Dest -Count 10 -ResolveIP -Detailed
+          $Results += $Details | Select-Object -Property * -ExcludeProperty Text
+      }
+      $Results | Export-Csv -Path D:\Results.csv -Force -NoTypeInformation
 
 NOTES
 -----
