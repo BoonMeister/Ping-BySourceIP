@@ -6,10 +6,10 @@ Pings a destination using a source IP address
 
 DESCRIPTION
 -----------
-Sends ICMP echo requests to a destination using the built-in ping.exe utility.
-Specify a source IP address and optionally the destination host, byte size or count.
-The -Quiet and -Detailed switch parameters can be used to search the text with regular
-expressions to return either a boolean value or a results object.
+Sends ICMP echo requests from a specific local network adapter using the built-in 
+ping.exe utility. Specify a source IP address and optionally the destination host, 
+byte size or count. The -Quiet and -Detailed parameters can be used to parse the 
+text with regular expressions to return either a boolean value or a results object.
 
 SYNTAX
 ------
