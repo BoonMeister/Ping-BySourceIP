@@ -1,16 +1,16 @@
 $ModuleName = "PowerShellPing"
-$AliasName = "pbs"
 If ((Get-Module).Name -ccontains $ModuleName) {Remove-Module -Name $ModuleName}
 New-Module -Name $ModuleName -ScriptBlock {
+    $AliasName = "pbs"
     Function Ping-BySourceIP {
     <#
         .SYNOPSIS
             Pings a destination using a source IP address
         .DESCRIPTION
-            Sends ICMP echo requests to a destination using the built-in ping.exe utility.
-            Specify a source IP address and optionally the destination host, byte size or count.
-            The -Quiet and -Detailed parameters can be used to parse the text with regular
-            expressions to return either a boolean value or a results object.
+            Sends ICMP echo requests from a specific local network adapter using the built-in 
+            ping.exe utility. Specify a source IP address and optionally the destination host, 
+            byte size or count. The -Quiet and -Detailed parameters can be used to parse the 
+            text with regular expressions to return either a boolean value or a results object.
         .PARAMETER Source
             An IPv4 address of a local network adapter. This parameter is required.
         .PARAMETER Destination
@@ -107,7 +107,7 @@ New-Module -Name $ModuleName -ScriptBlock {
     #>
         [CmdletBinding(DefaultParameterSetName="RegularPing",
                        PositionalBinding=$True,
-                       HelpUri="https://github.com/BoonMeister/Ping-BySourceIP/blob/master/README.md")]
+                       HelpUri="https://github.com/BoonMeister/Ping-BySourceIP")]
         [OutputType("System.String",ParameterSetName="RegularPing")]
         [OutputType("System.Boolean",ParameterSetName="QuietPing")]
         [OutputType("System.Management.Automation.PSCustomObject",ParameterSetName="DetailedPing")]
@@ -144,16 +144,43 @@ New-Module -Name $ModuleName -ScriptBlock {
             [Parameter(ParameterSetName="DetailedPing",Mandatory=$False)]
             [Switch]$Detailed = $False
         )
+        Begin {
+            If ($Quiet -or $Detailed) {
+                # Effectively Start-Process with stdout redirection
+                Function Get-ProcessOutput {
+                    Param(
+                        [Parameter(Mandatory=$True)]
+                        [String]$Command,
+                        [String]$ArgList,
+                        [Switch]$NoWindow = $False,
+                        [Switch]$UseShell = $False
+                    )
+                    $ProcInfo = New-Object System.Diagnostics.ProcessStartInfo
+                    $ProcInfo.CreateNoWindow = $NoWindow
+                    $ProcInfo.FileName = $Command
+                    $ProcInfo.RedirectStandardError = $True
+                    $ProcInfo.RedirectStandardOutput = $True
+                    $ProcInfo.UseShellExecute = $UseShell
+                    $ProcInfo.Arguments = $ArgList
+                    $InitProc = New-Object System.Diagnostics.Process
+                    $InitProc.StartInfo = $ProcInfo
+                    $Null = $InitProc.Start()
+                    $Output = $InitProc.StandardOutput.ReadToEnd()
+                    $InitProc.WaitForExit()
+                    $Output
+                }
+            }
+        }
         Process {
-            $MainCommand = "ping"
-            If ($ResolveIP) {$MainCommand += " -a"}
-            $MainCommand += " -n $Count -l $Size"
-            If ($NoFrag) {$MainCommand += " -f"}
-            $MainCommand += " -S $Source -4 $Destination"
+            $MainCommand = "ping.exe"
+            If ($ResolveIP) {$ProcArgs = "-a -n $Count -l $Size"}
+            Else {$ProcArgs = "-n $Count -l $Size"}
+            If ($NoFrag) {$ProcArgs += " -f"}
+            $ProcArgs += " -S $Source -4 $Destination"
             If ($Quiet -or $Detailed) {
                 $FirstLineRegEx,$LatencyRegEx,$ReturnedCount,$LineCount = "bytes of data:","Average = ",0,0
-                $PingResults = Invoke-Expression -Command $MainCommand
-                If ($PingResults.Count -gt 1) {
+                $PingResults = (Get-ProcessOutput -Command $MainCommand -ArgList $ProcArgs -NoWindow) -split "\r\n"
+                If ($PingResults.Count -gt 2) {
                     $ResultTable = @()
                     $PacketResults = (($PingResults | Select-String $FirstLineRegEx -Context (0,$Count)) -split "\r\n")[1..$Count].Trim()
                     Foreach ($Line in $PacketResults) {
@@ -202,9 +229,10 @@ New-Module -Name $ModuleName -ScriptBlock {
                     $ResultObj
                 }
             }
-            Elseif (($Source -ne "") -and ($Source -ne $Null)) {Invoke-Expression -Command $MainCommand}
+            Elseif (($Source -ne "") -and ($Source -ne $Null)) {Start-Process $MainCommand -ArgumentList $ProcArgs -NoNewWindow -Wait}
         }
     }
+    Set-Alias -Name $AliasName -Value Ping-BySourceIP
+    Export-ModuleMember -Function Ping-BySourceIP -Alias $AliasName
 } | Import-Module
-If ((Get-Alias).Name -ccontains $AliasName) {Set-Alias -Name $AliasName -Value Ping-BySourceIP}
-Else {New-Alias -Name $AliasName -Value Ping-BySourceIP}
+Get-Module -Name $ModuleName
