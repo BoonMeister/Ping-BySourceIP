@@ -76,14 +76,38 @@ EXAMPLES
 - Return normal output:
 
       Ping-BySourceIP -Source 192.168.0.13
+      
+      Pinging ds-c-0003.c-msedge.net [13.107.4.52] from 192.168.0.13 with 32 bytes of data:
+      Reply from 13.107.4.52: bytes=32 time=13ms TTL=120
+      Reply from 13.107.4.52: bytes=32 time=14ms TTL=120
+
+      Ping statistics for 13.107.4.52:
+        Packets: Sent = 2, Received = 2, Lost = 0 (0% loss),
+      Approximate round trip times in milli-seconds:
+        Minimum = 13ms, Maximum = 14ms, Average = 13ms
 
 - Pipe source and return boolean:
 
       "192.168.0.13" | Ping-BySourceIP -Quiet
+      
+      True
 
 - Specify destination, count, size, no fragmentation, perform reverse lookup and return an object:
 
-      Ping-BySourceIP -Source 192.168.0.13 -Destination 216.58.206.68 -Count 4 -Size 128 -NoFrag -Detailed
+      Ping-BySourceIP -Source 192.168.0.13 -Destination 216.58.206.68 -Count 4 -Size 128 -NoFrag -ResolveIP -Detailed
+      
+      Result      : True
+      Sent        : 4
+      Received    : 4
+      Percent     : 100
+      Size        : 128
+      NoFrag      : True
+      Source      : 192.168.0.13
+      Destination : lhr35s11-in-f4.1e100.net [216.58.206.68]
+      MinTime     : 17
+      MaxTime     : 73
+      AvgTime     : 41
+      Text        : {, Pinging lhr35s11-in-f4.1e100.net [216.58.206.68] from 192.168.0.13 with 128 bytes of data:, Reply from 216.58.206.68: bytes=64 (sent 128) time=17ms TTL=54, Reply from 216.58.206.68: bytes=64 (sent 128) time=73ms TTL=54...}
 
 - Renew DHCP lease of a local network adapter if not connected:
 
