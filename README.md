@@ -13,11 +13,9 @@ expressions to return either a boolean value or a results object.
 
 SYNTAX
 ------
-Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)] [-NoFrag] [-ResolveIP]
-  
-Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)] [-NoFrag] [-ResolveIP] [-Detailed]
-  
-Ping-BySourceIP -Source (String) [-Destination (String)] [-Count (Int32)] [-Size (Int32)] [-NoFrag] [-Quiet]
+    Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [-NoFrag] [-ResolveIP] 
+    Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [-NoFrag] [-ResolveIP] [-Detailed]
+    Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [-NoFrag] [-Quiet]
 
 PARAMETERS
 ----------
