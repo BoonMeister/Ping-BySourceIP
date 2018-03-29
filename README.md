@@ -13,19 +13,23 @@ text with regular expressions to return either a boolean value or a results obje
 
 SYNTAX
 ------
-    Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [-NoFrag] [-ResolveIP] 
-    Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [-NoFrag] [-ResolveIP] [-Detailed]
-    Ping-BySourceIP -Source <String> [-Destination <String>] [-Count <Int32>] [-Size <Int32>] [-NoFrag] [-Quiet]
+    Ping-BySourceIP [-Source] <String> [[-Destination] <String>] [[-Count] <Int32>] [[-Size] <Int32>] [-NoFrag] [-ResolveIP]
+    Ping-BySourceIP [-Source] <String> [-Destination] <String> [[-Count] <Int32>] [[-Size] <Int32>] [-ResolveIP] -ForceIPv6 -Detailed
+    Ping-BySourceIP [-Source] <String> [-Destination] <String> [[-Count] <Int32>] [[-Size] <Int32>] -ForceIPv6 -Quiet
+    Ping-BySourceIP [-Source] <String> [-Destination] <String> [[-Count] <Int32>] [[-Size] <Int32>] [-ResolveIP] -ForceIPv6
+    Ping-BySourceIP [-Source] <String> [[-Destination] <String>] [[-Count] <Int32>] [[-Size] <Int32>] [-NoFrag] [-ResolveIP] -Detailed
+    Ping-BySourceIP [-Source] <String> [[-Destination] <String>] [[-Count] <Int32>] [[-Size] <Int32>] [-NoFrag] -Quiet
 
 PARAMETERS
 ----------
 -Source (String)
 
-An IPv4 address of a local network adapter. This parameter is required.
+An IP address of a local network adapter. This parameter is required.
 
 -Destination (String)
 
-An IPv4 address or hostname to send packets to. Default is "internetbeacon.msedge.net".
+An IP address or hostname to send packets to. If used with -ForceIPv6 this
+parameter is required, else the default value is "internetbeacon.msedge.net".
 
 -Count (Int32)
 
@@ -38,12 +42,18 @@ Byte size of packets to send, in the range 0 - 65500. Default is 32.
 -NoFrag (SwitchParameter)
 
 Specifies that packets should not be fragmented whilst en route. When using -Quiet 
-or -Detailed a packet that requires fragmentation will be evaluated as a failed response.
+or -Detailed a packet that requires fragmentation will be evaluated as a failed 
+response. This parameter cannot be used with the -ForceIPv6 option.
     
 -ResolveIP (SwitchParameter)
 
 When specified with an IP address for the destination parameter attempts to 
 perform a reverse DNS lookup in order to retrieve the destination hostname.
+
+-ForceIPv6 (SwitchParameter)
+
+Forces the command to use IPv6 - By default ping is forced to use IPv4. If
+specified the -Destination parameter is required.
 
 -Quiet (SwitchParameter)
   
