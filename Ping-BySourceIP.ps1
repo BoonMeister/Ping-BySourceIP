@@ -118,7 +118,7 @@ New-Module -Name $ModuleName -ScriptBlock {
         [OutputType("System.Management.Automation.PSCustomObject")]
         Param(
             [Parameter(Mandatory=$True,ValueFromPipeline=$True,Position=0)]
-            [ValidatePattern("^[0-9a-fA-F:][0-9a-fA-F:.%]+[0-9a-fA-F]$")]
+            [ValidatePattern("^[0-9a-fA-F:][0-9a-fA-F:.]+[0-9a-fA-F]$")]
             [ValidateNotNullOrEmpty()]
             [String]$Source,
             [Parameter(ParameterSetName="RegularPing",Mandatory=$False,Position=1)]
@@ -127,16 +127,14 @@ New-Module -Name $ModuleName -ScriptBlock {
             [Parameter(ParameterSetName="Regularv6Ping",Mandatory=$True,Position=1)]
             [Parameter(ParameterSetName="Quietv6Ping",Mandatory=$True,Position=1)]
             [Parameter(ParameterSetName="Detailedv6Ping",Mandatory=$True,Position=1)]
-            [ValidatePattern("^[0-9a-zA-Z:][0-9a-zA-Z:.%]+[0-9a-zA-Z]$")]
+            [ValidatePattern("^[0-9a-zA-Z:][0-9a-zA-Z:.-]+[0-9a-zA-Z]$")]
             [ValidateNotNullOrEmpty()]
             [String]$Destination = "internetbeacon.msedge.net",
             [Parameter(Mandatory=$False,Position=2)]
             [ValidateRange(1,4294967295)]
-            [ValidateCount(1,1)]
             [Int]$Count = 2,
             [Parameter(Mandatory=$False,Position=3)]
             [ValidateRange(0,65500)]
-            [ValidateCount(1,1)]
             [Int]$Size = 32,
             [Parameter(ParameterSetName="RegularPing",Mandatory=$False)]
             [Parameter(ParameterSetName="QuietPing",Mandatory=$False)]
@@ -159,7 +157,7 @@ New-Module -Name $ModuleName -ScriptBlock {
             [Switch]$Detailed = $False
         )
         Begin {
-            # Effectively Start-Process with stdout redirection
+            # Effectively Start-Process with stdout redirection and better window suppression
             Function Get-ProcessOutput {
                 Param(
                     [Parameter(Mandatory=$True)]
@@ -176,20 +174,20 @@ New-Module -Name $ModuleName -ScriptBlock {
                 $ProcInfo.RedirectStandardOutput = $True
                 $ProcInfo.UseShellExecute = $UseShell
                 $ProcInfo.Arguments = $ArgList
-                $InitProc = New-Object System.Diagnostics.Process
-                $InitProc.StartInfo = $ProcInfo
-                $Null = $InitProc.Start()
+                $ProcObject = New-Object System.Diagnostics.Process
+                $ProcObject.StartInfo = $ProcInfo
+                $Null = $ProcObject.Start()
                 If ($WaitForOutput) {
-                    $Output = $InitProc.StandardOutput.ReadToEnd()
-                    $InitProc.WaitForExit()
+                    $Output = $ProcObject.StandardOutput.ReadToEnd()
+                    $ProcObject.WaitForExit()
                     $Output
                 }
                 Else {
                     Do {
-                        $InitProc.StandardOutput.ReadLine()
-                    } Until ($InitProc.HasExited)
-                    $InitProc.StandardOutput.ReadToEnd()
-                    $InitProc.WaitForExit()
+                        $ProcObject.StandardOutput.ReadLine()
+                    } Until ($ProcObject.HasExited)
+                    $ProcObject.StandardOutput.ReadToEnd()
+                    $ProcObject.WaitForExit()
                 }
             }
         }
@@ -208,20 +206,17 @@ New-Module -Name $ModuleName -ScriptBlock {
                     $PacketResults = (($PingResults | Select-String $FirstLineRegEx -Context (0,$Count)) -split "\r\n")[1..$Count].Trim()
                     Foreach ($Line in $PacketResults) {
                         $LineCount += 1
-                        If ($Line -match "^Reply from .*(time=|time<)") {$PacketTest = $True}
+                        If ($Line -match "^Reply from .+(time=|time<)") {$PacketTest = $True}
                         Elseif ($Line -match "timed out|host unreachable|General failure|transmit failed|needs to be fragmented") {$PacketTest = $False}
                         Else {Throw "Regex failed to match on packet number $LineCount. The data was: '$Line'"}
                         If ($PacketTest) {$ReturnedCount += 1}
                         $ResultTable += $PacketTest
                     }
-                    $PercentValue,$SentCount = [Int]($ReturnedCount/$Count*100),$Count
+                    $PercentValue,$SentCount,$SizeVar = [Int]($ReturnedCount/$Count*100),$Count,$Size
                     If ($ResultTable -contains $True) {$Result = $True}
                     Else {$Result = $False}
                 }
-                Else {
-                    $SentCount,$PercentValue,$Result = 0,0,$False
-                    Remove-Variable -Name Size,NoFrag
-                }
+                Else {$SentCount,$PercentValue,$Result = 0,0,$False}
                 If ($Quiet) {$Result}
                 Elseif ($Detailed) {
                     If ($PingResults | Select-String $FirstLineRegEx -Quiet) {
@@ -242,7 +237,7 @@ New-Module -Name $ModuleName -ScriptBlock {
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Sent" -Value $SentCount
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Received" -Value $ReturnedCount
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Percent" -Value $PercentValue
-                    $ResultObj | Add-Member -MemberType NoteProperty -Name "Size" -Value $Size
+                    $ResultObj | Add-Member -MemberType NoteProperty -Name "Size" -Value $SizeVar
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "NoFrag" -Value $NoFragVar
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Source" -Value $SourceStr
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Destination" -Value $DestStr
