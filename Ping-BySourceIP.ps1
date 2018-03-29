@@ -14,7 +14,7 @@ New-Module -Name $ModuleName -ScriptBlock {
         .PARAMETER Source
             An IP address of a local network adapter. This parameter is required.
         .PARAMETER Destination
-            An IP address or hostname to send packets to. If used with -ForceIPv6 this
+            An IP address or hostname to send packets to. If -ForceIPv6 is used this
             parameter is required, else the default value is "internetbeacon.msedge.net".
         .PARAMETER Count
             Number of packets to send, in the range 1 - 4294967295. The default value is 2.
@@ -113,11 +113,12 @@ New-Module -Name $ModuleName -ScriptBlock {
         [CmdletBinding(DefaultParameterSetName="RegularPing",
                        PositionalBinding=$True,
                        HelpUri="https://github.com/BoonMeister/Ping-BySourceIP")]
-        [OutputType("System.String",ParameterSetName="RegularPing")]
-        [OutputType("System.Boolean",ParameterSetName="QuietPing")]
-        [OutputType("System.Management.Automation.PSCustomObject",ParameterSetName="DetailedPing")]
+        [OutputType("System.String")]
+        [OutputType("System.Boolean")]
+        [OutputType("System.Management.Automation.PSCustomObject")]
         Param(
             [Parameter(Mandatory=$True,ValueFromPipeline=$True,Position=0)]
+            [ValidatePattern("^[0-9a-fA-F:][0-9a-fA-F:.%]+[0-9a-fA-F]$")]
             [ValidateNotNullOrEmpty()]
             [String]$Source,
             [Parameter(ParameterSetName="RegularPing",Mandatory=$False,Position=1)]
@@ -126,13 +127,16 @@ New-Module -Name $ModuleName -ScriptBlock {
             [Parameter(ParameterSetName="Regularv6Ping",Mandatory=$True,Position=1)]
             [Parameter(ParameterSetName="Quietv6Ping",Mandatory=$True,Position=1)]
             [Parameter(ParameterSetName="Detailedv6Ping",Mandatory=$True,Position=1)]
+            [ValidatePattern("^[0-9a-zA-Z:][0-9a-zA-Z:.%]+[0-9a-zA-Z]$")]
             [ValidateNotNullOrEmpty()]
             [String]$Destination = "internetbeacon.msedge.net",
             [Parameter(Mandatory=$False,Position=2)]
             [ValidateRange(1,4294967295)]
+            [ValidateCount(1,1)]
             [Int]$Count = 2,
             [Parameter(Mandatory=$False,Position=3)]
             [ValidateRange(0,65500)]
+            [ValidateCount(1,1)]
             [Int]$Size = 32,
             [Parameter(ParameterSetName="RegularPing",Mandatory=$False)]
             [Parameter(ParameterSetName="QuietPing",Mandatory=$False)]
@@ -155,29 +159,37 @@ New-Module -Name $ModuleName -ScriptBlock {
             [Switch]$Detailed = $False
         )
         Begin {
-            If ($Quiet -or $Detailed) {
-                # Effectively Start-Process with stdout redirection
-                Function Get-ProcessOutput {
-                    Param(
-                        [Parameter(Mandatory=$True)]
-                        [String]$Command,
-                        [String]$ArgList,
-                        [Switch]$NoWindow = $False,
-                        [Switch]$UseShell = $False
-                    )
-                    $ProcInfo = New-Object System.Diagnostics.ProcessStartInfo
-                    $ProcInfo.CreateNoWindow = $NoWindow
-                    $ProcInfo.FileName = $Command
-                    $ProcInfo.RedirectStandardError = $True
-                    $ProcInfo.RedirectStandardOutput = $True
-                    $ProcInfo.UseShellExecute = $UseShell
-                    $ProcInfo.Arguments = $ArgList
-                    $InitProc = New-Object System.Diagnostics.Process
-                    $InitProc.StartInfo = $ProcInfo
-                    $Null = $InitProc.Start()
+            # Effectively Start-Process with stdout redirection
+            Function Get-ProcessOutput {
+                Param(
+                    [Parameter(Mandatory=$True)]
+                    [String]$Command,
+                    [String]$ArgList,
+                    [Switch]$NoWindow = $False,
+                    [Switch]$UseShell = $False,
+                    [Switch]$WaitForOutput = $False
+                )
+                $ProcInfo = New-Object System.Diagnostics.ProcessStartInfo
+                $ProcInfo.CreateNoWindow = $NoWindow
+                $ProcInfo.FileName = $Command
+                $ProcInfo.RedirectStandardError = $True
+                $ProcInfo.RedirectStandardOutput = $True
+                $ProcInfo.UseShellExecute = $UseShell
+                $ProcInfo.Arguments = $ArgList
+                $InitProc = New-Object System.Diagnostics.Process
+                $InitProc.StartInfo = $ProcInfo
+                $Null = $InitProc.Start()
+                If ($WaitForOutput) {
                     $Output = $InitProc.StandardOutput.ReadToEnd()
                     $InitProc.WaitForExit()
                     $Output
+                }
+                Else {
+                    Do {
+                        $InitProc.StandardOutput.ReadLine()
+                    } Until ($InitProc.HasExited)
+                    $InitProc.StandardOutput.ReadToEnd()
+                    $InitProc.WaitForExit()
                 }
             }
         }
@@ -190,7 +202,7 @@ New-Module -Name $ModuleName -ScriptBlock {
             Else {$ProcArgs += " -S $Source -4 $Destination"}
             If ($Quiet -or $Detailed) {
                 $FirstLineRegEx,$LatencyRegEx,$ReturnedCount,$LineCount = "bytes of data:","Average = ",0,0
-                $PingResults = (Get-ProcessOutput -Command $MainCommand -ArgList $ProcArgs -NoWindow) -split "\r\n"
+                $PingResults = (Get-ProcessOutput -Command $MainCommand -ArgList $ProcArgs -NoWindow -WaitForOutput) -split "\r\n"
                 If ($PingResults.Count -gt 2) {
                     $ResultTable = @()
                     $PacketResults = (($PingResults | Select-String $FirstLineRegEx -Context (0,$Count)) -split "\r\n")[1..$Count].Trim()
@@ -241,7 +253,7 @@ New-Module -Name $ModuleName -ScriptBlock {
                     $ResultObj
                 }
             }
-            Elseif (($Source -ne "") -and ($Source -ne $Null)) {Start-Process $MainCommand -ArgumentList $ProcArgs -NoNewWindow -Wait}
+            Elseif (($Source -ne "") -and ($Source -ne $Null)) {Get-ProcessOutput -Command $MainCommand -ArgList $ProcArgs -NoWindow}
         }
     }
     Set-Alias -Name $AliasName -Value Ping-BySourceIP
