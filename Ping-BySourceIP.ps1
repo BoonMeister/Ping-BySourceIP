@@ -12,19 +12,24 @@ New-Module -Name $ModuleName -ScriptBlock {
             byte size or count. The -Quiet and -Detailed parameters can be used to parse the 
             text with regular expressions to return either a boolean value or a results object.
         .PARAMETER Source
-            An IPv4 address of a local network adapter. This parameter is required.
+            An IP address of a local network adapter. This parameter is required.
         .PARAMETER Destination
-            An IPv4 address or hostname to send packets to. The default value is "internetbeacon.msedge.net".
+            An IP address or hostname to send packets to. If used with -ForceIPv6 this
+            parameter is required, else the default value is "internetbeacon.msedge.net".
         .PARAMETER Count
             Number of packets to send, in the range 1 - 4294967295. The default value is 2.
         .PARAMETER Size
             Byte size of packets to send, in the range 0 - 65500. The default value is 32.
         .PARAMETER NoFrag
             Specifies that packets should not be fragmented whilst en route. When using -Quiet 
-            or -Detailed a packet that requires fragmentation will be evaluated as a failed response.
+            or -Detailed a packet that requires fragmentation will be evaluated as a failed 
+            response. This parameter cannot be used with the -ForceIPv6 option.
         .PARAMETER ResolveIP
             When specified with an IP address for the -Destination parameter attempts to 
             perform a reverse DNS lookup to retrieve the destination hostname.
+        .PARAMETER ForceIPv6
+            Forces the command to use IPv6 - By default ping is forced to use IPv4. If
+            specified the -Destination parameter is required.
         .PARAMETER Quiet
             Return a boolean value - True if any pings succeed, else False.
         .PARAMETER Detailed
@@ -35,7 +40,7 @@ New-Module -Name $ModuleName -ScriptBlock {
         .OUTPUTS
             System.String, System.Boolean or System.Management.Automation.PSCustomObject
             By default this function will generate 1 or more strings from ping.exe.
-            You can specify Quiet to generate a boolean or Detailed to generate a PSCustomObject.
+            You can specify Quiet to generate a Boolean or Detailed to generate a PSCustomObject.
         .NOTES
             Release Date: 2018-03-25
             Author: Francis Hagyard
@@ -95,13 +100,13 @@ New-Module -Name $ModuleName -ScriptBlock {
             In the second step, the function tests whether the IP address can ping the default host using 
             the -Quiet parameter to return a boolean value and stores the result in the $Connected variable.
 
-            In the third step, the scriptblock is only executed if $Connected is not True
-            (i.e. False/no pings successfully responded). In the scriptblock the Get-WmiObject cmdlet 
-            is piped to Where-Object to determine which local adapter has the IP address and a WMI object 
-            representing the adapter is stored in the $Adapter variable. The .ReleaseDHCPLease() method is 
-            called to release the DHCP lease on the adapter and the results assigned to the $Null automatic 
-            variable to prevent output being generated. The script then waits for 5 seconds before calling 
-            the .RenewDHCPLease() method, attempting to renew the DHCP lease on the adapter.
+            In the third step, the scriptblock is only executed if $Connected is not True. Inside the 
+            scriptblock the Get-WmiObject cmdlet is piped to Where-Object to determine which local adapter
+            has the IP address and a WMI object representing the adapter is stored in the $Adapter variable. 
+            The .ReleaseDHCPLease() method is called to release the DHCP lease on the adapter and the results
+            assigned to the $Null automatic variable to prevent output being generated. 
+            The script then waits for 5 seconds before calling the .RenewDHCPLease() method, attempting 
+            to renew the DHCP lease on the adapter.
         .LINK
             Project page: https://github.com/BoonMeister/Ping-BySourceIP
     #>
@@ -112,24 +117,21 @@ New-Module -Name $ModuleName -ScriptBlock {
         [OutputType("System.Boolean",ParameterSetName="QuietPing")]
         [OutputType("System.Management.Automation.PSCustomObject",ParameterSetName="DetailedPing")]
         Param(
-            [Parameter(ParameterSetName="RegularPing",Mandatory=$True,ValueFromPipeline=$True,Position=0)]
-            [Parameter(ParameterSetName="QuietPing",Mandatory=$True,ValueFromPipeline=$True,Position=0)]
-            [Parameter(ParameterSetName="DetailedPing",Mandatory=$True,ValueFromPipeline=$True,Position=0)]
-            [ValidatePattern("^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$")]
+            [Parameter(Mandatory=$True,ValueFromPipeline=$True,Position=0)]
+            [ValidateNotNullOrEmpty()]
             [String]$Source,
             [Parameter(ParameterSetName="RegularPing",Mandatory=$False,Position=1)]
             [Parameter(ParameterSetName="QuietPing",Mandatory=$False,Position=1)]
             [Parameter(ParameterSetName="DetailedPing",Mandatory=$False,Position=1)]
+            [Parameter(ParameterSetName="Regularv6Ping",Mandatory=$True,Position=1)]
+            [Parameter(ParameterSetName="Quietv6Ping",Mandatory=$True,Position=1)]
+            [Parameter(ParameterSetName="Detailedv6Ping",Mandatory=$True,Position=1)]
             [ValidateNotNullOrEmpty()]
             [String]$Destination = "internetbeacon.msedge.net",
-            [Parameter(ParameterSetName="RegularPing",Mandatory=$False,Position=2)]
-            [Parameter(ParameterSetName="QuietPing",Mandatory=$False,Position=2)]
-            [Parameter(ParameterSetName="DetailedPing",Mandatory=$False,Position=2)]
+            [Parameter(Mandatory=$False,Position=2)]
             [ValidateRange(1,4294967295)]
             [Int]$Count = 2,
-            [Parameter(ParameterSetName="RegularPing",Mandatory=$False,Position=3)]
-            [Parameter(ParameterSetName="QuietPing",Mandatory=$False,Position=3)]
-            [Parameter(ParameterSetName="DetailedPing",Mandatory=$False,Position=3)]
+            [Parameter(Mandatory=$False,Position=3)]
             [ValidateRange(0,65500)]
             [Int]$Size = 32,
             [Parameter(ParameterSetName="RegularPing",Mandatory=$False)]
@@ -138,10 +140,18 @@ New-Module -Name $ModuleName -ScriptBlock {
             [Switch]$NoFrag = $False,
             [Parameter(ParameterSetName="RegularPing",Mandatory=$False)]
             [Parameter(ParameterSetName="DetailedPing",Mandatory=$False)]
+            [Parameter(ParameterSetName="Regularv6Ping",Mandatory=$False)]
+            [Parameter(ParameterSetName="Detailedv6Ping",Mandatory=$False)]
             [Switch]$ResolveIP = $False,
-            [Parameter(ParameterSetName="QuietPing",Mandatory=$False)]
+            [Parameter(ParameterSetName="Regularv6Ping",Mandatory=$True)]
+            [Parameter(ParameterSetName="Quietv6Ping",Mandatory=$True)]
+            [Parameter(ParameterSetName="Detailedv6Ping",Mandatory=$True)]
+            [Switch]$ForceIPv6 = $False,
+            [Parameter(ParameterSetName="QuietPing",Mandatory=$True)]
+            [Parameter(ParameterSetName="Quietv6Ping",Mandatory=$True)]
             [Switch]$Quiet = $False,
-            [Parameter(ParameterSetName="DetailedPing",Mandatory=$False)]
+            [Parameter(ParameterSetName="DetailedPing",Mandatory=$True)]
+            [Parameter(ParameterSetName="Detailedv6Ping",Mandatory=$True)]
             [Switch]$Detailed = $False
         )
         Begin {
@@ -176,7 +186,8 @@ New-Module -Name $ModuleName -ScriptBlock {
             If ($ResolveIP) {$ProcArgs = "-a -n $Count -l $Size"}
             Else {$ProcArgs = "-n $Count -l $Size"}
             If ($NoFrag) {$ProcArgs += " -f"}
-            $ProcArgs += " -S $Source -4 $Destination"
+            If ($ForceIPv6) {$ProcArgs += " -S $Source -6 $Destination"}
+            Else {$ProcArgs += " -S $Source -4 $Destination"}
             If ($Quiet -or $Detailed) {
                 $FirstLineRegEx,$LatencyRegEx,$ReturnedCount,$LineCount = "bytes of data:","Average = ",0,0
                 $PingResults = (Get-ProcessOutput -Command $MainCommand -ArgList $ProcArgs -NoWindow) -split "\r\n"
@@ -213,13 +224,14 @@ New-Module -Name $ModuleName -ScriptBlock {
                         $MaxTime = ($Times[1] -split "=")[1].Trim() -replace "ms",""
                         $AvgTime = ($Times[2] -split "=")[1].Trim() -replace "ms",""
                     }
+                    If (!$ForceIPv6) {$NoFragVar = $NoFrag}
                     $ResultObj = New-Object PsObject
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Result" -Value $Result
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Sent" -Value $SentCount
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Received" -Value $ReturnedCount
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Percent" -Value $PercentValue
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Size" -Value $Size
-                    $ResultObj | Add-Member -MemberType NoteProperty -Name "NoFrag" -Value $NoFrag
+                    $ResultObj | Add-Member -MemberType NoteProperty -Name "NoFrag" -Value $NoFragVar
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Source" -Value $SourceStr
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "Destination" -Value $DestStr
                     $ResultObj | Add-Member -MemberType NoteProperty -Name "MinTime" -Value $MinTime
