@@ -118,8 +118,7 @@ EXAMPLES
 - Renew DHCP lease of a local network adapter if not connected:
 
       $IPAddress = "192.168.0.13"
-      $Connected = Ping-BySourceIP -Source $IPAddress -Quiet
-      If (!$Connected) {
+      If (!(Ping-BySourceIP -Source $IPAddress -Quiet)) {
           $Adapter = Get-WmiObject -Class Win32_NetworkAdapterConfiguration | Where {$_.IPAddress -contains $IPAddress}
           $Null = $Adapter.ReleaseDHCPLease()
           Start-Sleep -Seconds 5
